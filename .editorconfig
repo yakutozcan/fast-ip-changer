@@ -1,0 +1,29 @@
+# https://editorconfig.org
+# This repo mixes Go (tabs), TS/TSX (2 spaces), JSON, plists and NSIS scripts,
+# so the per-type overrides below are load-bearing, not decoration.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.go]
+indent_style = tab
+
+[*.{md,markdown}]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_style = tab
+
+# The NSIS installer template is a Windows file; rewriting its line endings
+# breaks makensis.
+[*.{nsi,nsh}]
+end_of_line = crlf
+
+[*.{plist,manifest}]
+indent_size = 4

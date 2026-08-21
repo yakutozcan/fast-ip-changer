@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: Go (${{ matrix.os }})
+    # The matrix is native rather than GOOS= cross-compilation on purpose: the
+    # per-platform files in pkg/sysexec are only ever compiled by the runner
+    # they target, and ubuntu is the only job that compiles elevate_other.go /
+    # hide_other.go or runs the "unsupported platform" branch. Linux is a
+    # coverage target, not a shipping target.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: go vet
+        run: go vet ./...
+
+      # -race matters here: diagnostics.QuickCheck fans out three goroutines,
+      # and the cancellable-run slot in that package is shared mutable state.
+      - name: go test
+        run: go test ./... -race -cover
+
+      # Linux only. A Windows checkout would report every file as unformatted
+      # because of CRLF.
+      - name: gofmt
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "::error::these files are not gofmt-clean:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      # vite 7 and @vitejs/plugin-react 5 both require ^20.19 || >=22.12.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+
+      # Type-checks src and vite.config.ts. Also the backstop for stale Wails
+      # bindings: a change to app.go without `wails generate module` fails here.
+      - run: npm run typecheck
+
+      - run: npm run build

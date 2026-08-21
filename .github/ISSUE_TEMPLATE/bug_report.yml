@@ -1,0 +1,108 @@
+name: Bug report
+description: Something the app does wrong — a failed change, a wrong reading, a crash.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please do not report security problems here — use
+        [private reporting](https://github.com/yakutozcan/fast-ip-changer/security/advisories/new)
+        instead.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+      placeholder: |
+        1. Selected the "Wi-Fi" adapter
+        2. Applied the DF_192.168.1.100 profile
+        3. Expected: static IP applied. Actual: error banner.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+      description: Linux is not supported; see the README.
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: 'macOS 15.3 / Windows 11 23H2'
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: From the release you downloaded, or the commit you built.
+      placeholder: 'v1.0.0'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: adapter
+    attributes:
+      label: Adapter type
+      options:
+        - Wi-Fi
+        - Ethernet
+        - USB / tethering
+        - VPN or virtual adapter
+        - Other
+        - Not applicable
+    validations:
+      required: true
+
+  - type: dropdown
+    id: elevated
+    attributes:
+      label: Was the app elevated?
+      description: On Windows, whether the UAC prompt was accepted. On macOS, whether the password prompt appeared.
+      options:
+        - 'Yes'
+        - 'No'
+        - "Don't know"
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-text
+    attributes:
+      label: Error message
+      description: Copy the banner text from the app verbatim. It is in Turkish — please do not translate it, the exact string identifies the code path.
+      render: text
+
+  - type: textarea
+    id: raw-output
+    attributes:
+      label: Raw command output
+      description: |
+        **The most useful field in this form if the app read your network wrong.**
+        The app parses the output of the OS's own tools, and that output is
+        locale-dependent, so a paste of what your machine prints is usually
+        enough to fix the bug.
+
+        Run the command for your platform in a terminal and paste the output as-is:
+
+        macOS:
+        ```
+        networksetup -listnetworkserviceorder
+        ifconfig -a
+        ```
+
+        Windows:
+        ```
+        netsh interface show interface
+        netsh interface ipv4 show addresses
+        ```
+      render: text

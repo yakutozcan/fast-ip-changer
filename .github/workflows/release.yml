@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  # Pinned to the wails/v2 version in go.mod. A CLI newer than the library can
+  # silently regenerate different bindings or a different NSIS template, so the
+  # two move together or not at all.
+  WAILS_VERSION: v2.15.0
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: darwin/universal
+            artifact: fast-ip-changer-macos-universal
+          - os: windows-latest
+            platform: windows/amd64
+            artifact: fast-ip-changer-windows-amd64
+            nsis: '-nsis'
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # wails.json's frontend:install is `npm install`; run `npm ci` first so
+      # the lockfile is what actually decides the dependency tree. Wails' own
+      # install step then no-ops.
+      - run: npm ci
+        working-directory: frontend
+
+      - run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
+
+      # wails build runs frontend:install and frontend:build before compiling
+      # Go, so frontend/dist is populated by the time //go:embed reads it.
+      - run: wails build -platform ${{ matrix.platform }} ${{ matrix.nsis }}
+
+      # upload-artifact drops the executable bit and does not follow symlinks,
+      # which leaves a raw .app upload unusable. Zip it with ditto first.
+      - name: Package .app
+        if: runner.os == 'macOS'
+        run: |
+          shopt -s nullglob
+          apps=(build/bin/*.app)
+          if [ ${#apps[@]} -eq 0 ]; then
+            echo "::error::no .app found in build/bin"
+            exit 1
+          fi
+          ditto -c -k --keepParent "${apps[0]}" "build/bin/${{ matrix.artifact }}.zip"
+          rm -rf "${apps[0]}"
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.artifact }}
+          path: build/bin/*
+          if-no-files-found: error
+
+  release:
+    name: Draft release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+
+      # Draft, not published: the artifacts are unsigned, so they get downloaded
+      # and hand-tested on both platforms before anyone else sees them.
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          generate_release_notes: true
+          files: artifacts/**/*
