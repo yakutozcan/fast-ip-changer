@@ -85,7 +85,7 @@ jobs:
 
       # Draft, not published: the artifacts are unsigned, so they get downloaded
       # and hand-tested on both platforms before anyone else sees them.
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           draft: true
           generate_release_notes: true
