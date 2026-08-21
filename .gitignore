@@ -1,32 +1,48 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
+# Wails build output
+build/bin
+frontend/package.json.md5
+
+# Vite output. The directory itself must stay tracked: main.go embeds it with
+# //go:embed, which fails when the pattern matches no files, so a fresh clone
+# needs the .gitkeep placeholder for `go build`/`go test` to work.
+frontend/dist/*
+!frontend/dist/.gitkeep
+
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+
+# Go build & test artifacts
+/fast-ip-changer
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Test binary, built with `go test -c`
 *.test
+coverage.out
+coverage.txt
+*.prof
 
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Go workspace file
-go.work
-go.work.sum
+# JetBrains IDEs
+.idea/
 
-# env file
+# VS Code
+.vscode/
+
+# Local environment files
 .env
-
-# Editor/IDE
-# .idea/
-# .vscode/
+.env.local

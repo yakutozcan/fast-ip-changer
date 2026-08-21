@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  }
+
+  /*
+   * The app chrome is `select-none` (desktop app), but form controls must stay
+   * selectable so copy/paste keeps working inside the IP fields.
+   */
+  input,
+  textarea,
+  select {
+    @apply select-text;
+  }
+}

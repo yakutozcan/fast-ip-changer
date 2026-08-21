@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Fast IP Changer application icon.
+
+  Source of truth for build/appicon.png, which Wails turns into the platform
+  icons at build time. After editing this file, regenerate the PNG with:
+
+      rsvg-convert -w 1024 -h 1024 build/appicon.svg -o build/appicon.png
+
+  Keep it flat and high-contrast: it has to stay readable at 16x16 in the
+  Windows taskbar and the macOS menu bar.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#1e293b"/>
+      <stop offset="1" stop-color="#0b1120"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="232" ry="232" fill="url(#bg)"/>
+
+  <g fill="none" stroke-width="64" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outbound: a static configuration applied to the adapter. -->
+    <g stroke="#f8fafc">
+      <path d="M296 420 H696"/>
+      <path d="M612 336 L696 420 L612 504"/>
+    </g>
+    <!-- Inbound: the adapter switched back to DHCP. -->
+    <g stroke="#38bdf8">
+      <path d="M728 604 H328"/>
+      <path d="M412 520 L328 604 L412 688"/>
+    </g>
+  </g>
+</svg>

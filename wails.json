@@ -1,0 +1,19 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "fast-ip-changer",
+  "outputfilename": "fast-ip-changer",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Yakut Özcan"
+  },
+  "info": {
+    "companyName": "Yakut Özcan",
+    "productName": "Fast IP Changer",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2026 Yakut Özcan. MIT licensed.",
+    "comments": "Switch between static IP and DHCP, manage IP profiles and run network diagnostics."
+  }
+}

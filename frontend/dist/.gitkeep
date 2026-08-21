@@ -1,0 +1,12 @@
+Placeholder that keeps frontend/dist non-empty.
+
+main.go embeds the build output with //go:embed all:frontend/dist, and a Go
+embed pattern that matches no files is a compile error. The build output itself
+is not committed, so on a fresh clone `go build`, `go vet` and `go test` would
+fail before anyone has run a frontend build.
+
+Two things keep that from happening, and both are needed:
+  - frontend/dist/.gitkeep is committed (see the negation in .gitignore), which
+    covers the clone-before-first-build case;
+  - this file lives in frontend/public, which Vite copies into dist on every
+    build, restoring the placeholder that emptyOutDir had just deleted.
