@@ -9,7 +9,7 @@ learned the hard way in review.
 Prerequisites:
 
 - Go 1.25 or newer
-- Node.js 22 (the version CI uses; vite 7 requires `^20.19 || >=22.12`)
+- Node.js 22 (the version CI uses; Vite needs `^20.19 || >=22.12`)
 - The Wails CLI, **pinned to the version in `go.mod`**:
 
 ```bash

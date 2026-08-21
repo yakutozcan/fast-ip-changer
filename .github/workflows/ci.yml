@@ -62,7 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # vite 7 and @vitejs/plugin-react 5 both require ^20.19 || >=22.12.
+      # Vite requires ^20.19 || >=22.12, so '22' resolves to a usable 22.x.
       - uses: actions/setup-node@v7
         with:
           node-version: '22'

@@ -8,8 +8,7 @@
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": true,
-    "allowSyntheticDefaultImports": true
+    "noEmit": true
   },
   "include": [
     "vite.config.ts"
