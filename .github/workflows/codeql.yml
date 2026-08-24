@@ -1,0 +1,87 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly. CodeQL's query packs are updated on GitHub's side, so a repository
+    # that has stopped changing can still acquire a new finding; without the cron
+    # nobody would learn about it until the next commit.
+    - cron: '17 4 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyse ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The only elevated scope in this repository's workflows, and it buys
+      # exactly one thing: the SARIF upload in the analyze step, which is what
+      # puts findings in the Security tab instead of only in the job log.
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Go is compiled, so its database is built from an observed build (see
+          # the Build step for why it is manual rather than autobuild). The
+          # frontend is interpreted and needs no build at all.
+          - language: go
+            build-mode: manual
+          - language: javascript-typescript
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        if: matrix.language == 'go'
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Inline rather than a separate .github/codeql/ config file: two
+          # exclusions are not worth a second file to keep in sync. Both
+          # directories are generated - frontend/wailsjs is the vendored Wails
+          # JavaScript runtime and frontend/dist is Vite output - and oxlint
+          # already skips both for the same reason.
+          config: |
+            paths-ignore:
+              - frontend/dist
+              - frontend/wailsjs
+
+      # Manual, not autobuild, for one reason: autobuild would compile for the
+      # runner only, and a linux compile never sees elevate_windows.go,
+      # elevate_darwin.go or hide_windows.go - the build-tagged files that
+      # actually hand a constructed command to an elevated shell, and the ones
+      # SECURITY.md names as the boundary. Cross-compiling ./pkg/... for both
+      # shipping platforms pulls them into the same trace, so all three variants
+      # of pkg/sysexec end up in one database.
+      #
+      # Only ./pkg/... is cross-compiled: package main imports wails, which needs
+      # a per-platform cgo toolchain, and cgo is off by default when GOOS differs
+      # from the host. main is covered by the native build on the first line.
+      #
+      # No frontend build is needed here. frontend/dist/.gitkeep is tracked
+      # precisely so //go:embed all:frontend/dist resolves on a fresh clone (see
+      # "The frontend/dist placeholder" in the README), which is what keeps a
+      # bare `go build` working without npm.
+      - name: Build
+        if: matrix.language == 'go'
+        run: |
+          go build ./...
+          GOOS=darwin GOARCH=arm64 go build ./pkg/...
+          GOOS=windows GOARCH=amd64 go build ./pkg/...
+
+      - uses: github/codeql-action/analyze@v4
