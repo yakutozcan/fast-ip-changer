@@ -88,8 +88,8 @@ export default function IpConfigTab({
         >
           {adapters
             .filter((a) => a.enabled)
-            .map((a, idx) => (
-              <option key={idx} value={a.name}>
+            .map((a) => (
+              <option key={a.name} value={a.name}>
                 {a.name}
               </option>
             ))}

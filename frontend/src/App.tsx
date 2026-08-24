@@ -104,6 +104,10 @@ export default function App() {
   useEffect(() => {
     void reloadAdapters();
     void reloadProfiles();
+    // The loading flag this sets is the point: this effect is the mount-time
+    // load of state only the Go backend has, not a value derivable during
+    // render.
+    // oxlint-disable-next-line react/set-state-in-effect
     void runQuickCheck();
   }, [reloadAdapters, reloadProfiles, runQuickCheck]);
 

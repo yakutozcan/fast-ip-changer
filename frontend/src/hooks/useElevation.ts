@@ -10,14 +10,15 @@ export function useElevation(): boolean | null {
 
   useEffect(() => {
     let cancelled = false;
-    IsElevated()
-      .then((value) => {
+    void (async () => {
+      try {
+        const value = await IsElevated();
         if (!cancelled) setIsElevated(value);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
         if (!cancelled) setIsElevated(null);
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };
