@@ -62,6 +62,20 @@ jobs:
         shell: bash
         run: |
           set -eu
+          # The Windows job runs this under Git Bash while `go test` ran under
+          # pwsh, and the first Windows run could not see coverage.out from here
+          # at all, so the profile is located rather than assumed. cygpath turns
+          # the runner's D:\a\... form into something Git Bash can open.
+          profile=coverage.out
+          if [ ! -f "$profile" ]; then
+            root=$(cygpath -u "$GITHUB_WORKSPACE" 2>/dev/null || printf '%s' "$GITHUB_WORKSPACE")
+            profile="$root/coverage.out"
+          fi
+          if [ ! -f "$profile" ]; then
+            echo "::error::coverage profile not found. pwd=$(pwd) workspace=$GITHUB_WORKSPACE"
+            ls -la
+            exit 1
+          fi
           # Aggregated from the profile rather than from `go tool cover -func`,
           # whose per-function list is too long to read and cannot be averaged
           # into a package number without weighting by statement count. Profile
@@ -80,7 +94,7 @@ jobs:
             END {
               for (k in stmts) printf "%-58s %5.1f%%\n", k, 100 * covered[k] / stmts[k];
               printf "%-58s %5.1f%%\n", "total", 100 * hit / total;
-            }' coverage.out | sort
+            }' "$profile" | sort
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
