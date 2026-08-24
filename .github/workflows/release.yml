@@ -59,7 +59,21 @@ jobs:
       # promised. The runner image does not carry NSIS, so install it here.
       - name: Install NSIS
         if: runner.os == 'Windows'
-        run: choco install nsis --no-progress --yes
+        shell: bash
+        run: |
+          set -eu
+          choco install nsis --no-progress --yes
+          # choco writes the machine PATH, which a job already running does not
+          # inherit — installing alone left makensis unfound and the build fell
+          # back to its warning again. GITHUB_PATH puts it on PATH for the steps
+          # that follow.
+          echo 'C:\Program Files (x86)\NSIS' >> "$GITHUB_PATH"
+
+      # Fails here, before a 13-second build, if the line above stopped working.
+      - name: Check makensis is on PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: makensis -VERSION
 
       # wails build runs frontend:install and frontend:build before compiling
       # Go, so frontend/dist is populated by the time //go:embed reads it.
