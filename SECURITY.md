@@ -62,3 +62,28 @@ be named.
   those rights the network configuration can be changed directly, without this app.
 - **Linux.** The platform is not supported; network calls return an explicit
   unsupported-platform error.
+
+## Automated scanning
+
+Three checks run automatically alongside the CI build:
+
+- **CodeQL** ([`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)) analyses the
+  Go code and the TypeScript frontend on every push to `main`, every pull request and
+  weekly. Its Go database is built by cross-compiling `pkg/` for both shipping platforms,
+  so `elevate_darwin.go`, `elevate_windows.go` and `hide_windows.go` are analysed rather
+  than skipped by a Linux-only build — those are the files the privileged path above runs
+  through. Findings land in the repository's Security tab.
+- **govulncheck** ([`.github/workflows/security.yml`](.github/workflows/security.yml))
+  checks the module against the Go vulnerability database on the same triggers. It reports
+  an advisory only when it can trace a call path from this module to the vulnerable
+  symbol, so a finding is a reachable vulnerability rather than a version match.
+- **Dependency review** blocks a pull request that introduces a dependency with a known
+  high-severity or critical advisory. Dependabot handles the routine weekly bumps for Go
+  modules, npm and GitHub Actions.
+
+The Go side is also linted with `gosec` as part of golangci-lint, and the quoting helpers
+carry the only `gosec` suppression in the tree, with the reasoning written next to it.
+
+None of this replaces a report. Automated analysis does not understand the quoting
+boundary or the single-prompt batch authorisation described above, which is where the
+interesting bugs are.

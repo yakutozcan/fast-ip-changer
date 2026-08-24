@@ -29,7 +29,8 @@ Before opening a pull request:
 
 ```bash
 go vet ./... && go test ./... -race && gofmt -l .
-cd frontend && npm ci && npm run typecheck && npm run build
+go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.1 run ./...
+cd frontend && npm ci && npm run lint && npm run typecheck && npm run test && npm run build
 ```
 
 CI runs exactly this, on Linux, macOS and Windows.
