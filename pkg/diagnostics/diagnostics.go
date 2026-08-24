@@ -337,7 +337,9 @@ func lookupPublicIP(ctx context.Context) string {
 	if err != nil {
 		return ""
 	}
-	defer resp.Body.Close()
+	// The body is read in full below, so a failing Close only means the
+	// connection could not be recycled — nothing the caller could act on.
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return ""

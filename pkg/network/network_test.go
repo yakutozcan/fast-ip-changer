@@ -207,6 +207,9 @@ func TestParsePowerShellAdaptersEdgeCases(t *testing.T) {
 	})
 
 	t.Run("garbage output", func(t *testing.T) {
+		// Verbatim PowerShell output, so the American spelling stays as PowerShell
+		// prints it — this is a fixture, not prose.
+		//nolint:misspell // captured Windows output, not the repo's British English
 		if _, err := parsePowerShellAdapters("Get-NetAdapter is not recognized", ""); err == nil {
 			t.Fatal("expected an error for non-JSON output")
 		}
@@ -444,6 +447,7 @@ func TestSetStaticIPValidatesBeforeRunning(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			//nolint:staticcheck // nil context on purpose: validation must reject the input before the context is ever used
 			err := SetStaticIP(nil, tt.adapter, tt.ip, tt.subnet, tt.gateway, tt.dns)
 			if err == nil || err.Error() != tt.wantErr {
 				t.Fatalf("error = %v, want %q", err, tt.wantErr)
@@ -453,13 +457,15 @@ func TestSetStaticIPValidatesBeforeRunning(t *testing.T) {
 }
 
 func TestAdapterNameRequiredEverywhere(t *testing.T) {
-	if err := SetDHCP(nil, " "); err == nil {
+	// The nil contexts are deliberate: each of these must fail on the adapter
+	// name before it reaches sysexec, so no context is needed to fail.
+	if err := SetDHCP(nil, " "); err == nil { //nolint:staticcheck // see above
 		t.Fatal("SetDHCP: expected an error for a blank adapter name")
 	}
-	if err := EnableAdapter(nil, ""); err == nil {
+	if err := EnableAdapter(nil, ""); err == nil { //nolint:staticcheck // see above
 		t.Fatal("EnableAdapter: expected an error for an empty adapter name")
 	}
-	if err := DisableAdapter(nil, ""); err == nil {
+	if err := DisableAdapter(nil, ""); err == nil { //nolint:staticcheck // see above
 		t.Fatal("DisableAdapter: expected an error for an empty adapter name")
 	}
 }

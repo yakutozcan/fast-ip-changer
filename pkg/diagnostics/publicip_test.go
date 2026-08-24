@@ -43,7 +43,7 @@ func TestLookupPublicIP(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 				w.WriteHeader(tt.status)
 				_, _ = w.Write([]byte(tt.body))
 			}))
@@ -61,7 +61,7 @@ func TestLookupPublicIP(t *testing.T) {
 // error either: an unknown public IP is simply empty.
 func TestLookupPublicIPHonoursTimeout(t *testing.T) {
 	release := make(chan struct{})
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		<-release
 	}))
 	defer func() {
@@ -86,7 +86,7 @@ func TestLookupPublicIPHonoursTimeout(t *testing.T) {
 // unless the caller asked for it. This is the test that keeps that true.
 func TestQuickCheckDoesNotContactServiceUnlessOptedIn(t *testing.T) {
 	var hits atomic.Int64
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		hits.Add(1)
 		_, _ = w.Write([]byte("203.0.113.7"))
 	}))
@@ -110,7 +110,7 @@ func TestQuickCheckDoesNotContactServiceUnlessOptedIn(t *testing.T) {
 }
 
 func TestQuickCheckReportsPublicIPWhenOptedIn(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("203.0.113.7"))
 	}))
 	defer srv.Close()

@@ -44,7 +44,11 @@ func joinAnd(cmds [][]string) string {
 	return strings.Join(parts, " && ")
 }
 
-func elevationHint(action string) error {
+// elevationHint reports that the platform cannot obtain administrator rights on
+// its own. It is called from elevate_windows.go and elevate_other.go; the darwin
+// build re-issues through osascript instead and never reaches it, so `unused` is
+// silenced here rather than left to fire on whichever GOOS the linter runs as.
+func elevationHint(action string) error { //nolint:unused // unreachable in a darwin build only; see above
 	return &ErrNeedsElevation{Hint: fmt.Sprintf(
 		"%s için yönetici yetkisi gerekiyor. Uygulamayı yönetici olarak yeniden başlatın.", action)}
 }

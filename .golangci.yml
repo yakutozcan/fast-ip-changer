@@ -1,0 +1,66 @@
+# golangci-lint configuration for the Go side of the app.
+#
+# The linter set is deliberately small. The default set catches the mistakes that
+# are always mistakes; everything added on top is here because of something this
+# codebase actually does — shell out to networksetup/netsh/osascript with values
+# typed into the UI, read HTTP from a third-party service, and carry ~20
+# user-facing Turkish error strings across the Wails boundary.
+#
+# Every exclusion below names the reason it exists. Nothing is silenced globally.
+version: "2"
+
+linters:
+  # standard = errcheck, govet, ineffassign, staticcheck, unused.
+  default: standard
+  enable:
+    # The privileged commands are built from UI input, so subprocess and
+    # file-permission findings are exactly the class of bug worth catching here.
+    - gosec
+    # lookupPublicIP is the only HTTP client in the tree; a leaked response body
+    # would be a leak on the app's start-up path.
+    - bodyclose
+    # The error strings the UI shows are matched by substring in tests; wrapping
+    # and comparison mistakes are easy to make and hard to see.
+    - errorlint
+    # sysexec/network return errors from best-effort probes on purpose. nilerr
+    # keeps an accidental "checked the error, returned nil anyway" from hiding
+    # in among the deliberate ones.
+    - nilerr
+    # The parsers loop over captured command output and take addresses/slices of
+    # loop variables; go.mod is 1.25, so per-iteration variables are the rule and
+    # a lingering pre-1.22 copy is now dead weight.
+    - copyloopvar
+    # Documentation and comments are English by project rule (CONTRIBUTING.md §5).
+    - misspell
+    # Exported API crosses into TypeScript via `wails generate module`, so
+    # doc comments on it are load-bearing rather than decoration.
+    - revive
+
+  settings:
+    misspell:
+      # The prose in this repo is British English — "behaviour", "serialises",
+      # "authorisation", "cancelled", "localised". Under the default US locale
+      # misspell would demand the American spelling of every one of them, so the
+      # locale is set to match the code rather than rewriting the comments.
+      locale: UK
+      # The UI strings are Turkish (CONTRIBUTING.md §5) and misspell only knows
+      # English: Turkish "adres" (address) reads as a misspelling of "address".
+      # Listing the one word is narrower than excluding the files holding it.
+      ignore-rules:
+        - adres
+
+  exclusions:
+    rules:
+      # G304 "file inclusion via variable" on paths the test itself built under
+      # t.TempDir(). There is no untrusted input in a test fixture path, and the
+      # helpers exist precisely so no test touches the real profile file.
+      - linters:
+          - gosec
+        path: _test\.go$
+        text: "G304"
+
+formatters:
+  # gofmt is what CI checks with `gofmt -l .`; running it here too means the
+  # single linter invocation covers formatting as well.
+  enable:
+    - gofmt

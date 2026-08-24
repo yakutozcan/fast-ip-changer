@@ -24,6 +24,8 @@ const profileFileName = ".ip_changer_profiles.json"
 
 const filePerm = 0o600
 
+// IPProfile is one saved configuration. It crosses the Wails boundary, so the
+// JSON tags are also the field names the frontend sees.
 type IPProfile struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
@@ -183,7 +185,8 @@ func save(profiles []IPProfile) error {
 	}
 	tmpName := tmp.Name()
 	// No-op once the rename below has succeeded; cleans up on every error path.
-	defer os.Remove(tmpName)
+	// A failure here leaves a stray temp file at worst, so it is not reported.
+	defer func() { _ = os.Remove(tmpName) }()
 
 	if err := writeTemp(tmp, data); err != nil {
 		return fmt.Errorf("profiller kaydedilemedi: %w", err)
@@ -195,7 +198,9 @@ func save(profiles []IPProfile) error {
 }
 
 func writeTemp(tmp *os.File, data []byte) error {
-	defer tmp.Close()
+	// Backstop for the error paths below; the success path closes explicitly and
+	// returns that error, so this second close is a no-op whose result is moot.
+	defer func() { _ = tmp.Close() }()
 
 	if err := tmp.Chmod(filePerm); err != nil && runtime.GOOS != "windows" {
 		return err
