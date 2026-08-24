@@ -3,6 +3,10 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # Build-only smoke test. The release job below is gated on a tag, so a manual
+  # run exercises the packaging — including the NSIS installer, which used to
+  # fail silently — without creating a release or moving a tag.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -50,9 +54,46 @@ jobs:
 
       - run: go install github.com/wailsapp/wails/v2/cmd/wails@${{ env.WAILS_VERSION }}
 
+      # `wails build -nsis` degrades to a warning when makensis is absent, which
+      # is how v1.0.0 and v1.0.1 shipped without the installer the README
+      # promised. The runner image does not carry NSIS, so install it here.
+      - name: Install NSIS
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -eu
+          choco install nsis --no-progress --yes
+          # choco writes the machine PATH, which a job already running does not
+          # inherit — installing alone left makensis unfound and the build fell
+          # back to its warning again. GITHUB_PATH puts it on PATH for the steps
+          # that follow.
+          echo 'C:\Program Files (x86)\NSIS' >> "$GITHUB_PATH"
+
+      # Fails here, before a 13-second build, if the line above stopped working.
+      - name: Check makensis is on PATH
+        if: runner.os == 'Windows'
+        shell: bash
+        run: makensis -VERSION
+
       # wails build runs frontend:install and frontend:build before compiling
       # Go, so frontend/dist is populated by the time //go:embed reads it.
       - run: wails build -platform ${{ matrix.platform }} ${{ matrix.nsis }}
+
+      # The point of the step above: turn the silent warning into a failure. Two
+      # files are expected on Windows — the app exe and the installer — and a
+      # release missing the installer should not reach the upload step.
+      - name: Check the installer was produced
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          set -eu
+          installer=$(find build/bin -maxdepth 1 -name '*installer*.exe' -print -quit)
+          if [ -z "$installer" ]; then
+            echo "::error::no NSIS installer in build/bin — wails build -nsis fell back to a warning"
+            ls -la build/bin
+            exit 1
+          fi
+          echo "installer: $installer"
 
       # upload-artifact drops the executable bit and does not follow symlinks,
       # which leaves a raw .app upload unusable. Zip it with ditto first.
@@ -77,6 +118,9 @@ jobs:
   release:
     name: Draft release
     needs: build
+    # Tags only. A workflow_dispatch run is a packaging smoke test and must not
+    # create a release or attach assets to one.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v8
