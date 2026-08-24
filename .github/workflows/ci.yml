@@ -91,8 +91,10 @@ jobs:
           path: coverage.out
           if-no-files-found: error
 
-      # Linux only. A Windows checkout would report every file as unformatted
-      # because of CRLF.
+      # golangci-lint's gofmt formatter reports the same thing on every runner;
+      # this step stays because it lists every offending file at once, and one
+      # runner is enough for that. .gitattributes pins the tree to LF, without
+      # which a Windows checkout reports every CRLF-converted file here.
       - name: gofmt
         if: matrix.os == 'ubuntu-latest'
         run: |

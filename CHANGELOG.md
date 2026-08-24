@@ -24,6 +24,8 @@ user can see: release downloads can now be verified against `SHA256SUMS.txt`.
   CI runners so each platform's `pkg/sysexec` variant is linted.
 - CodeQL analysis of the Go and TypeScript sources, `govulncheck` against the Go
   vulnerability database, and dependency review on pull requests.
+- `.gitattributes` pinning source files to LF, so a Windows checkout does not convert the
+  tree to CRLF and fail the formatting check.
 
 ### Changed
 

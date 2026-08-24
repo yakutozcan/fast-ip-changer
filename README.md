@@ -239,9 +239,13 @@ chosen for what this app does: `gosec` because the privileged commands are built
 values typed into the UI, `bodyclose` for the one HTTP client in the tree, `errorlint` and
 `nilerr` because the error strings are part of the contract with the frontend,
 `copyloopvar`, `misspell` (locale `UK`, matching the project's prose) and `revive` for doc
-comments on the exported API that crosses into TypeScript. Formatting is *not* covered by
-this command — `golangci-lint run` does not report the enabled formatter's findings, so
-`gofmt -l .` is still its own step.
+comments on the exported API that crosses into TypeScript. `gofmt` runs as a formatter, so
+this command reports formatting too; CI keeps a separate `gofmt -l .` step because it
+names every offending file at once.
+
+Line endings are pinned to LF by [`.gitattributes`](.gitattributes). Without it a Windows
+checkout converts the tree to CRLF and every converted file is reported as unformatted —
+which is exactly how the Windows job failed the first time the linter ran there.
 
 Every exclusion in the config names its reason and each `//nolint` in the source carries
 an explanation. The one worth reading is the `gosec` G204 suppression in
