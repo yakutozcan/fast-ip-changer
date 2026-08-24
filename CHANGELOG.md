@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-08-24
+
 ### Fixed
 
 - The Windows release now actually contains the NSIS installer the README described. The
@@ -71,6 +73,7 @@ First public release.
   parsing, hidden child-process console windows, and elevation requested by the
   application manifest.
 
-[Unreleased]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/yakutozcan/fast-ip-changer/releases/tag/v1.0.0
