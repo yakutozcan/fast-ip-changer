@@ -1,0 +1,15 @@
+# Windows runners check out with core.autocrlf=true, which rewrites LF to CRLF in
+# the working tree. gofmt then reports every converted file as unformatted, so
+# the Go job failed on Windows and only there. Go source is LF in the index and
+# must stay LF in the working tree on every platform.
+*.go text eol=lf
+
+# Same reasoning for the other files a tool compares byte for byte: the
+# workflows and configs are read by actionlint and oxlint, and a checksum or a
+# fixture that changes shape per platform is a bug waiting to happen.
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.sh text eol=lf

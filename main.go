@@ -1,3 +1,5 @@
+// Command fast-ip-changer is the Wails entry point: it registers the bound App
+// methods, embeds the built frontend and opens the app's fixed-size window.
 package main
 
 import (

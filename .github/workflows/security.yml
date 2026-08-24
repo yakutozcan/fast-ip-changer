@@ -1,0 +1,70 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly, offset from the CodeQL cron so the two do not queue against each
+    # other. The Go vulnerability database gains entries independently of this
+    # repository, so a scheduled run is the only thing that catches an advisory
+    # published against a dependency that nobody has touched since.
+    - cron: '47 4 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  govulncheck:
+    name: govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Deliberately NOT go-version-file: go.mod, which is what the other
+      # workflows use. govulncheck reports standard library advisories against
+      # the toolchain it runs with, and the go.mod directive is a floor (1.25.0),
+      # not the toolchain anyone builds a release with - pinning to it would make
+      # this job fail every time Go ships a security patch, over findings that no
+      # change to this repository can fix. Tracking the latest stable release
+      # gives the two failure modes their real meanings: a module finding is a
+      # dependency to bump, and a stdlib finding means Go itself has an
+      # unpatched advisory.
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+          cache: true
+
+      # govulncheck only reports an advisory when it can trace a call path from
+      # this module's code to the vulnerable symbol, so a finding here is a
+      # reachable vulnerability rather than a version match. It exits non-zero on
+      # any finding, which is the gate. Run through `go run` rather than a
+      # third-party action: it needs no token and pins nothing this repository
+      # would then have to maintain.
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+  dependency-review:
+    name: Dependency review
+    # The action diffs the dependency manifests of a pull request against its
+    # base commit, so there is nothing for it to compare on a push or on the
+    # weekly run. It lives here rather than in ci.yml because a blocked advisory
+    # is a security failure, not a build failure.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/dependency-review-action@v5
+        with:
+          # Covers both ecosystems (gomod and npm) through GitHub's dependency
+          # graph, which is where the Dependabot config already points it.
+          # Dependabot handles the routine bumps; this is the gate for a *new*
+          # dependency arriving in a pull request with a known advisory against
+          # it. High and critical fail the job; anything lower is reported in the
+          # job summary without blocking.
+          fail-on-severity: high

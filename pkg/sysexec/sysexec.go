@@ -19,7 +19,12 @@ const DefaultTimeout = 20 * time.Second
 
 // Command builds an *exec.Cmd bound to ctx, with the platform tweaks applied.
 func Command(ctx context.Context, name string, args ...string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, name, args...)
+	// gosec G204 flags every variable argv, which is the entire point of this
+	// package: name and args are passed to execve as a vector, so no value here
+	// reaches a shell and nothing in args can become a new command. The one
+	// place a shell is involved is RunPrivileged on macOS, and that path quotes
+	// through shellQuote/appleScriptQuote before it gets here.
+	cmd := exec.CommandContext(ctx, name, args...) //nolint:gosec // argv is never shell-interpreted; see above
 	hideWindow(cmd)
 	return cmd
 }

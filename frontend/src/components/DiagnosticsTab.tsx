@@ -138,8 +138,13 @@ export default function DiagnosticsTab({
             </button>
           </div>
         </div>
+        {/*
+          role="log" plus tabIndex makes this a focusable live region: a
+          scrollable box has to take focus or keyboard users cannot scroll it.
+        */}
         <pre
           data-native-menu="true"
+          role="log"
           tabIndex={0}
           aria-label="Terminal çıktısı"
           className="bg-gray-950 text-green-400 p-3 rounded-b-md text-xs font-mono h-48 overflow-y-auto whitespace-pre-wrap select-text cursor-text selection:bg-green-900 selection:text-white border border-gray-900"

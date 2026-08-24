@@ -83,10 +83,42 @@ jobs:
         with:
           path: artifacts
 
+      # The published binaries are unsigned, so a checksum list is the only way
+      # a downloader can tell a release file apart from something that was
+      # tampered with in transit. The lines carry bare filenames rather than the
+      # artifacts/<name>/ paths, because that is what a browser saves them as:
+      # `shasum -a 256 -c SHA256SUMS.txt` then works in the download directory
+      # with no editing. Written outside artifacts/ so it does not also match the
+      # artifacts/**/* upload pattern and get attached twice.
+      - name: Generate SHA256SUMS.txt
+        working-directory: artifacts
+        run: |
+          set -eu
+          files=$(find . -type f -print | sort)
+          if [ -z "$files" ]; then
+            echo "::error::no artifacts to checksum"
+            exit 1
+          fi
+          # Two artifacts sharing a filename would produce two lines that cannot
+          # both be verified from one directory. Fail rather than ship that.
+          dupes=$(printf '%s\n' "$files" | xargs -n1 basename | sort | uniq -d)
+          if [ -n "$dupes" ]; then
+            echo "::error::duplicate artifact filenames: $dupes"
+            exit 1
+          fi
+          out="$GITHUB_WORKSPACE/SHA256SUMS.txt"
+          : > "$out"
+          printf '%s\n' "$files" | while IFS= read -r f; do
+            ( cd "$(dirname "$f")" && sha256sum "$(basename "$f")" ) >> "$out"
+          done
+          cat "$out"
+
       # Draft, not published: the artifacts are unsigned, so they get downloaded
       # and hand-tested on both platforms before anyone else sees them.
       - uses: softprops/action-gh-release@v3
         with:
           draft: true
           generate_release_notes: true
-          files: artifacts/**/*
+          files: |
+            artifacts/**/*
+            SHA256SUMS.txt

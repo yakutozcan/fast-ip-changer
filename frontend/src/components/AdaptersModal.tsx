@@ -104,9 +104,9 @@ export default function AdaptersModal({
         </div>
 
         <div className="overflow-y-auto flex-1 pr-1 space-y-2.5">
-          {adapters.map((a, idx) => (
+          {adapters.map((a) => (
             <div
-              key={idx}
+              key={a.name}
               className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col space-y-1.5 bg-gray-50 dark:bg-gray-700/40"
             >
               <div className="flex justify-between items-center">

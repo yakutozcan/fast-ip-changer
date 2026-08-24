@@ -6,6 +6,38 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-24
+
+Tooling and internal quality only. No change to what the app does, with one exception a
+user can see: release downloads can now be verified against `SHA256SUMS.txt`.
+
+### Added
+
+- `SHA256SUMS.txt` is attached to every release, so unsigned downloads can be checked
+  for integrity. README documents the verification commands.
+- Frontend linting with oxlint (`npm run lint`), enforced in CI with `--deny-warnings`.
+- Frontend unit tests on Vitest (`npm run test`) covering `src/lib` — IPv4 and mask
+  validation, the DNS list parser, the storage wrapper and platform detection — run in CI.
+- CI collects a Go coverage profile per runner, prints a per-package table in the job
+  summary and uploads the profile as an artifact.
+- Go linting with golangci-lint (`.golangci.yml`), pinned to v2.13.1 and run on all three
+  CI runners so each platform's `pkg/sysexec` variant is linted.
+- CodeQL analysis of the Go and TypeScript sources, `govulncheck` against the Go
+  vulnerability database, and dependency review on pull requests.
+- `.gitattributes` pinning source files to LF, so a Windows checkout does not convert the
+  tree to CRLF and fail the formatting check.
+
+### Changed
+
+- Doc comments added to the exported API that crosses the Wails boundary, deferred
+  `Close`/`Remove` results are now explicitly discarded, and the double close in the
+  profile writer says which of the two owns the error.
+- `useElevation` uses `async`/`await` like the other hooks instead of a `.then` chain.
+- Adapter lists key React children on the adapter name rather than the array index.
+- The diagnostics output region is a `role="log"` live region, which is also what makes
+  its `tabIndex` correct: a scrollable box has to be focusable to be scrollable by
+  keyboard.
+
 ## [1.0.0] - 2026-08-21
 
 First public release.
@@ -27,5 +59,6 @@ First public release.
   parsing, hidden child-process console windows, and elevation requested by the
   application manifest.
 
-[Unreleased]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/yakutozcan/fast-ip-changer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/yakutozcan/fast-ip-changer/releases/tag/v1.0.0
