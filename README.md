@@ -26,12 +26,18 @@ known to be malicious" — but you should only accept it for a build you downloa
 this repository's Releases page, and you can always build from source instead (see
 [Development](#development)).
 
-**Windows** — run the `.exe` installer.
+**Windows** — two files are attached. `fast-ip-changer-amd64-installer.exe` installs the
+app and creates the Start Menu entry and an uninstall entry; `fast-ip-changer.exe` is the
+same application as a single file that runs from wherever you put it, with nothing to
+uninstall. Either works.
 
 1. SmartScreen shows "Windows protected your PC": choose **More info → Run anyway**.
 2. Accept the UAC prompt. It will say the publisher is unknown, again because the build
    is unsigned. The app asks for elevation at launch because `netsh` cannot change the IP
    configuration without it.
+
+Releases before v1.0.2 carry only `fast-ip-changer.exe`: the installer step was failing
+with a warning that the build did not treat as an error.
 
 **macOS** — unzip and drag `Fast IP Changer.app` into `/Applications`.
 

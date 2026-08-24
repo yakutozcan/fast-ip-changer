@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+
+- The Windows release now actually contains the NSIS installer the README described. The
+  Wails installer flag degrades to a warning when `makensis` is missing, and the runner
+  image does not carry NSIS, so v1.0.0 and v1.0.1 shipped without it. NSIS is installed in
+  the release job and a check fails the build if the installer is absent.
+
+### Added
+
+- The release workflow can be run manually as a packaging smoke test; the job that creates
+  the release is gated on a tag, so a manual run cannot publish anything.
+
 ## [1.0.1] - 2026-08-24
 
 Tooling and internal quality only. No change to what the app does, with one exception a
