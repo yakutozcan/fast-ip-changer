@@ -50,8 +50,15 @@ jobs:
 
       # -race matters here: diagnostics.QuickCheck fans out three goroutines,
       # and the cancellable-run slot in that package is shared mutable state.
+      #
+      # shell: bash on every runner, not just for consistency: under the Windows
+      # default (pwsh) this wrote the profile as `coverage`, losing the `.out`,
+      # and the next step then had no coverage.out to read. Running both steps in
+      # the same shell keeps the filename and the working directory identical
+      # across the matrix.
       - name: go test
-        run: go test ./... -race -covermode=atomic -coverprofile=coverage.out
+        shell: bash
+        run: go test ./... -race -covermode=atomic -coverprofile='coverage.out'
 
       # Reported, not gated. Coverage differs by runner on purpose — each OS
       # compiles a different set of the pkg/sysexec files — so a single
@@ -62,17 +69,12 @@ jobs:
         shell: bash
         run: |
           set -eu
-          # The Windows job runs this under Git Bash while `go test` ran under
-          # pwsh, and the first Windows run could not see coverage.out from here
-          # at all, so the profile is located rather than assumed. cygpath turns
-          # the runner's D:\a\... form into something Git Bash can open.
           profile=coverage.out
+          # Fails with the directory listing rather than with awk's "cannot open
+          # file", which is what the Windows profile-name bug above first looked
+          # like.
           if [ ! -f "$profile" ]; then
-            root=$(cygpath -u "$GITHUB_WORKSPACE" 2>/dev/null || printf '%s' "$GITHUB_WORKSPACE")
-            profile="$root/coverage.out"
-          fi
-          if [ ! -f "$profile" ]; then
-            echo "::error::coverage profile not found. pwd=$(pwd) workspace=$GITHUB_WORKSPACE"
+            echo "::error::coverage profile not found. pwd=$(pwd)"
             ls -la
             exit 1
           fi
