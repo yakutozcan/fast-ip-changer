@@ -109,7 +109,7 @@ jobs:
           ditto -c -k --keepParent "${apps[0]}" "build/bin/${{ matrix.artifact }}.zip"
           rm -rf "${apps[0]}"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: build/bin/*
