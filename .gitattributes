@@ -13,3 +13,9 @@
 *.ts text eol=lf
 *.tsx text eol=lf
 *.sh text eol=lf
+
+# Screenshots and icons are binary: never run end-of-line conversion on them.
+# Git auto-detects this, but the repository is checked out on Windows runners
+# with autocrlf=true, so state it rather than rely on the heuristic.
+*.png binary
+*.ico binary

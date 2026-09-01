@@ -14,6 +14,16 @@ operating system's own network tools, and a React 19 + TypeScript + Tailwind CSS
 frontend. The window is a fixed 480x780 panel (resizing is disabled). **The user
 interface is in Turkish**; the code, comments and this document are in English.
 
+## Screenshots
+
+| IP configuration | Diagnostics |
+| --- | --- |
+| <img src="docs/screenshots/ip-config.png" alt="The IP configuration tab: adapter picker, static/DHCP toggle, saved profiles and the address fields." width="380"> | <img src="docs/screenshots/diagnostics.png" alt="The ping and traceroute tab with ping output in the console area." width="380"> |
+
+Captured on macOS. The banner at the top of both shots is the unelevated-state notice:
+diagnostics run as the current user, and applying a configuration raises the macOS
+authorisation dialog.
+
 ## Install
 
 Download the latest build from the
