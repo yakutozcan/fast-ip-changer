@@ -24,11 +24,11 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.0.5",
     "happy-dom": "^20.11.6",
     "oxlint": "^1.79.0",
